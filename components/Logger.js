@@ -62,8 +62,6 @@ export const Init = async (endPoint, user) => {
    let table_response = await promise;
    console.log("table created response",table_response );
       if (table_response.status == 200) {
-        // setting async storage of check;
-        SyncStorage.set('check', 'true');
         return {status: 200};
       }
   } catch (err) {
@@ -171,12 +169,13 @@ export const sendLog = async () => {
 export const Log = async message => {
   try {
   
-    console.log('checking table is created...', SyncStorage.get('check'));
-    if (SyncStorage.get('check') == undefined) {
+    console.log('checking table is created...', SyncStorage.get('device_platform'));
+    if (SyncStorage.get('device_platform') == undefined) {
      let init_response = await Init('form_submit', 'JONE');
       console.log('Init function called', init_response);
     }
-    if (SyncStorage.get('check') == 'true') {
+    console.log(SyncStorage.get('device_platform'))
+    if (SyncStorage.get('device_platform') != undefined) {
       let Log = {
         endPoint: SyncStorage.get('endPoint')
           ? SyncStorage.get('endPoint')

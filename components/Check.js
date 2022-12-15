@@ -8,11 +8,13 @@ export default function Check() {
         console.log("setComponentName called...")
         setComponentName(route);
         (async()=>{
-         await  Log('line no 11');
+         await  Log('line no 11 and message');
+         await  Log('line no 11 and message');
+         
          await Log('line no 12');
         })();
     },[])
-    
+     Log('line no 17 and message');
     
  
   return (

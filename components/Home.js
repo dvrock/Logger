@@ -4,7 +4,7 @@ import {setComponentName, Log} from './Logger';
 export default function Home() {
   setComponentName();
   useEffect(() => {
-    Log('line no 7');
+    Log('line no 7 and message');
   }, []);
 
    Log('line no 9');
