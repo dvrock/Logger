@@ -5,18 +5,13 @@ import {Logger,Init, sendLog} from './components/Logger';
 import Check from "./components/Check"
 import SyncStorage from 'sync-storage';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-console.reportErrorsAsExceptions = false;
-SyncStorage.set('check','false'); 
-export default function App() {
 
+
+console.reportErrorsAsExceptions = false;
+ 
+export default function App() {
   const Stack = createNativeStackNavigator();
-  useEffect(() => {
-     StorageManager.getInstance().getData(Key.firstTime).then((result) => {
-      if (result != undefined){ 
-      SyncStorage.set('check','false');
-      Init("form_submit","JONE");} 
-    });
-  }, []);
+  
 
   setInterval(() => {
     console.log('function called');

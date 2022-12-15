@@ -5,16 +5,16 @@ import {useRoute} from '@react-navigation/native';
 export default function Check() {
     let route = useRoute();
     useEffect(()=>{
-        Log('line no 9');
         console.log("setComponentName called...")
         setComponentName(route);
+        (async()=>{
+         await  Log('line no 11');
+         await Log('line no 12');
+        })();
     },[])
-    Log('line no 12');
-
-  
-  Log('line no 12');
-  Log('line no 11');
-  Log('line no 13');
+    
+    
+ 
   return (
     <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
       <Text>Welcome</Text>

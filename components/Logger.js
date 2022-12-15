@@ -5,6 +5,7 @@ import {openDatabase} from 'react-native-sqlite-storage';
 import {getDevice} from 'react-native-device-info';
 import SyncStorage from 'sync-storage';
 import axios from 'react-native-axios';
+
 var db = openDatabase(
   {name: 'tech_data', location: 'default'},
   () => {},
@@ -18,8 +19,6 @@ export const Init = async (endPoint, user) => {
   try {
     //setting offset
     SyncStorage.set('offset', 0);
-    // setting async storage of check;
-    SyncStorage.set('check', 'false');
     // setting device platform...
     Platform.OS === 'android'
       ? SyncStorage.set('device_platform', 'android')
@@ -29,7 +28,7 @@ export const Init = async (endPoint, user) => {
     // setting device name...
     let device_name = null;
     device_name = await getDevice()._j;
-    SyncStorage.set('device_name', device_name);
+    if(device_name) SyncStorage.set('device_name', device_name);
     // setting user ...
     SyncStorage.set('current_user', user);
     // creating table name(table_logger) if not exist...
@@ -60,19 +59,24 @@ export const Init = async (endPoint, user) => {
         );
       });
     });
-    promise.then(res => {
-      if (res.status == 200) {
-        console.log('response status of table creating:', res.status);
+   let table_response = await promise;
+   console.log("table created response",table_response );
+      if (table_response.status == 200) {
+        // setting async storage of check;
         SyncStorage.set('check', 'true');
+        return {status: 200};
       }
-    });
   } catch (err) {
     console.log(err.message);
   }
 };
-export const setComponentName = route => {
+export const setComponentName = (route = null) => {
   try {
+    if(route){
     console.log('component name', route.name);
+    }else{
+       route = useRoute();
+    }
     SyncStorage.set('fileName', route.name);
   } catch (err) {
     console.log(err.message);
@@ -91,7 +95,7 @@ export const sendLog = async () => {
             var temp = [];
             id = SyncStorage.get('first_id') ? SyncStorage.get('first_id') : 0;
             SyncStorage.set('last_id', id);
-            for (let i = 0; i < results.rows.length; ++i) {              
+            for (let i = 0; i < results.rows.length; ++i) {
               delete results.rows.item(i)['log_sent_status'];
               id = results.rows.item(i).log_id;
               temp.push(results.rows.item(i));
@@ -141,7 +145,7 @@ export const sendLog = async () => {
       console.log('response status:', response.status);
       if (response && response.status && response.status == 200) {
         console.log('id of last row', SyncStorage.get('last_id'));
-        //updating rows 
+        //updating rows
         db.transaction(async function (txn) {
           txn.executeSql(
             `UPDATE table_logger SET log_sent_status = ? WHERE log_id <= ${id} AND log_id >${SyncStorage.get(
@@ -166,61 +170,65 @@ export const sendLog = async () => {
 };
 export const Log = async message => {
   try {
-    
+  
     console.log('checking table is created...', SyncStorage.get('check'));
-    if (SyncStorage.get('check') == 'false') {
-      Init('form_submit', 'JONE');
-      console.log('Init function called');
-      return;
+    if (SyncStorage.get('check') == undefined) {
+     let init_response = await Init('form_submit', 'JONE');
+      console.log('Init function called', init_response);
     }
-    let Log = {
-      endPoint: SyncStorage.get('check') ? SyncStorage.get('check') : null,
-      file_name: SyncStorage.get('fileName')
-        ? SyncStorage.get('fileName')
-        : null,
-      device_platform: SyncStorage.get('device_platform')
-        ? SyncStorage.get('device_platform')
-        : null,
-      device_name: SyncStorage.get('device_name')
-        ? SyncStorage.get('device_name')
-        : null,
-      current_user: SyncStorage.get('current_user')
-        ? SyncStorage.get('current_user')
-        : null,
-      log_send_status: 'PENDING',
-      message: message ? message : null,
-      current_Time: Date().valueOf(),
-      updated_Time: Date().valueOf(),
-    };
-    console.log('consoling Log...', Log);
-    delete Log.endPoint;
-    let insertArray = Object.values(Log);
-    if (
-      Log.file_name &&
-      Log.device_platform &&
-      Log.current_user &&
-      Log.message
-    ) {
-      console.log('inserting data...', insertArray);
-      db.transaction(function (txn) {
-        txn.executeSql(
-          'INSERT INTO table_logger (filename, device_platform, device_name, currentuser, log_sent_status, message, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-          insertArray,
-          (tx, res) => {
-            console.log(res.rowsAffected);
-            if (res.rowsAffected > 0) {
-              console.log('row has been inserted`', res.rows);
-            } else {
-              console.log('row has not been inserted`', res);
-            }
-          },
-          err => {
-            console.log(err);
-          },
-        );
-      });
-    } else {
-      console.log('some fields of the table is null');
+    if (SyncStorage.get('check') == 'true') {
+      let Log = {
+        endPoint: SyncStorage.get('endPoint')
+          ? SyncStorage.get('endPoint')
+          : null,
+        file_name: SyncStorage.get('fileName')
+          ? SyncStorage.get('fileName')
+          : null,
+        device_platform: SyncStorage.get('device_platform')
+          ? SyncStorage.get('device_platform')
+          : null,
+        device_name: SyncStorage.get('device_name')
+          ? SyncStorage.get('device_name')
+          : null,
+        current_user: SyncStorage.get('current_user')
+          ? SyncStorage.get('current_user')
+          : null,
+        log_send_status: 'PENDING',
+        message: message ? message : null,
+        current_Time: Date().valueOf(),
+        updated_Time: Date().valueOf(),
+      };
+      console.log('consoling Log...', Log);
+      delete Log.endPoint;
+      let insertArray = Object.values(Log);
+      if (
+        Log.file_name &&
+        Log.device_platform &&
+        Log.current_user &&
+        Log.message
+      ) {
+        
+        console.log('inserting data...', insertArray);
+        db.transaction(function (txn) {
+          txn.executeSql(
+            'INSERT INTO table_logger (filename, device_platform, device_name, currentuser, log_sent_status, message, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            insertArray,
+            (tx, res) => {
+              console.log(res.rowsAffected);
+              if (res.rowsAffected > 0) {
+                console.log('row has been inserted`', res.rows);
+              } else {
+                console.log('row has not been inserted`', res);
+              }
+            },
+            err => {
+              console.log(err);
+            },
+          );
+        });
+      } else {
+        console.log('some fields of the table is null');
+      }
     }
   } catch (err) {
     console.log(err.message);
