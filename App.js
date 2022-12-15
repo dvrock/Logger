@@ -12,6 +12,7 @@ export default function App() {
   const Stack = createNativeStackNavigator();
   useEffect(() => {
     Init('form_submit', 'Jone');
+    sendLog();
   }, []);
 
   setInterval(() => {

@@ -5,7 +5,7 @@ import {openDatabase} from 'react-native-sqlite-storage';
 import {getDevice} from 'react-native-device-info';
 import SyncStorage from 'sync-storage';
 import axios from 'react-native-axios';
-
+import base64 from 'react-native-base64'
 var db = openDatabase(
   {name: 'tech_data', location: 'default'},
   () => {},
@@ -114,13 +114,17 @@ export const sendLog = async () => {
                     SyncStorage.get('endPoint') +
                     ' url',
                 );
+                var username = 'form_data';
+                var password = 'a_p_creds';
+                const token = `${username}:${password}`;
+                const encodedToken = base64.encode(token);
                 //sending logs to backend...
                 let response = await axios.post(
                   `http://192.168.100.41:3001/${SyncStorage.get('endPoint')}`,
                   {temp},
                   {
                     headers: {
-                      'Content-type': 'application/json',
+                      'Authorization': 'Basic '+ encodedToken
                     },
                   },
                 );
