@@ -6,7 +6,8 @@ export default function Home() {
   useEffect(() => {
     Log('line no 7');
   }, []);
-  Log('line no 9');
+
+   Log('line no 9');
   Log('line no 10');
   Log('line no 11');
   return (
